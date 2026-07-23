@@ -10,10 +10,22 @@ ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
 os.environ["PATH"] = os.path.dirname(ffmpeg_exe) + os.pathsep + os.environ.get("PATH", "")
 
 import speech_recognition as sr
-import whisper
 from deep_translator import GoogleTranslator
 from gtts import gTTS
 from flask import Flask, request, jsonify, send_from_directory
+
+# Graceful Import Fallback for Whisper / PyTorch to prevent DLL initialization crashes
+HAS_WHISPER = True
+whisper_error_msg = ""
+try:
+    import whisper
+except Exception as e:
+    HAS_WHISPER = False
+    whisper_error_msg = str(e)
+    print("\n⚠️ WARNING: OpenAI Whisper/PyTorch could not be loaded due to DLL initialization conflicts:")
+    print(f"  {whisper_error_msg}\n")
+    print("  -> Google Speech Engine (bn-BD) remains fully functional.")
+    print("  -> To fix Whisper, install Python 3.11/3.12 and the latest MS Visual C++ Redistributable.\n")
 
 app = Flask(__name__, static_folder=".")
 
@@ -24,6 +36,8 @@ SESSIONS = {}
 WHISPER_MODELS = {}
 
 def get_whisper_model(model_name="base"):
+    if not HAS_WHISPER:
+        raise RuntimeError(f"OpenAI Whisper/PyTorch is not available: {whisper_error_msg}")
     if model_name not in WHISPER_MODELS:
         print(f"🧠 Loading OpenAI Whisper '{model_name}' model into memory...")
         WHISPER_MODELS[model_name] = whisper.load_model(model_name)
@@ -171,6 +185,11 @@ def extract_subtitles():
                 detected_lang = "bn"
 
         if not srt_entries:
+            if not HAS_WHISPER:
+                return jsonify({
+                    "error": f"OpenAI Whisper/PyTorch could not load on this machine due to DLL conflict: {whisper_error_msg}. Please install Python 3.11/3.12 and Visual C++ Redistributable."
+                }), 500
+
             print("🧠 Running OpenAI Whisper Neural Engine...")
             model = get_whisper_model("base")
             options = {"task": "transcribe"}
@@ -300,7 +319,6 @@ def translate_and_dub():
                 filter_inputs.append(f"[{i}:a]adelay={start_ms}|{start_ms}[a{i}]")
                 filter_outputs.append(f"[a{i}]")
 
-            # Combine all delayed audio streams into master audio using FFmpeg amix filter
             filter_str = ";".join(filter_inputs) + ";" + "".join(filter_outputs) + f"amix=inputs={len(translated_segments)}:duration=longest[out]"
             
             ffmpeg_cmd.extend([
