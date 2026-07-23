@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 # ZipLoot AI Subtitle & Voice Dubbing Studio 1-Click Bash Installer (Linux & macOS)
+cd "$(dirname "$0")" || exit
 
 echo "====================================================================="
 echo "   ZipLoot AI Subtitle Transcriber & Voice Dubbing Studio Installer"
