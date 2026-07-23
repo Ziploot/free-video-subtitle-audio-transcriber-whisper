@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Real AI Video Subtitle Transcriber & Audio Dubbing Studio — ZipLoot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --void: #000510;
+      --panel: rgba(8, 14, 42, 0.88);
+      --panel-hard: #050c22;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-lit: rgba(129, 140, 248, 0.35);
+      --ink-0: #ffffff;
+      --ink-1: #e2e8f0;
+      --ink-2: #94a3b8;
+      --ink-3: #475569;
+      --v: #818cf8;
+      --p: #c084fc;
+      --c: #22d3ee;
+      --g: #4ade80;
+      --grd-a: linear-gradient(135deg, #818cf8, #c084fc, #22d3ee);
+      --font-d: 'Syne', sans-serif;
+      --font-m: 'Space Mono', monospace;
+      --font-b: 'Inter', sans-serif;
+    }
+
+    body {
+      background: var(--void);
+      background-image: radial-gradient(circle, rgba(129, 140, 248, 0.06) 1px, transparent 1px);
+      background-size: 32px 32px;
+      color: var(--ink-1);
+      font-family: var(--font-b);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px 80px;
+    }
+
+    .container { width: 100%; max-width: 1040px; }
+
+    .nav-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; margin-bottom: 36px; padding: 14px 28px;
+      background: rgba(4, 8, 24, 0.8); backdrop-filter: blur(20px);
+      border: 1px solid var(--border-lit); border-radius: 100px;
+    }
+
+    .nav-logo {
+      font-family: var(--font-d); font-size: 20px; font-weight: 800;
+      color: #fff; text-decoration: none; display: flex; align-items: center; gap: 4px;
+    }
+    .nav-logo span.highlight {
+      background: var(--grd-a); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .back-link {
+      font-family: var(--font-d); font-size: 13px; font-weight: 600;
+      color: var(--ink-2); text-decoration: none; transition: color 0.25s;
+    }
+    .back-link:hover { color: var(--v); }
+
+    .studio-card {
+      background: var(--panel); backdrop-filter: blur(24px);
+      border: 1px solid var(--border); border-radius: 28px; padding: 40px;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6); position: relative; overflow: hidden;
+    }
+    .studio-card::before {
+      content: ''; position: absolute; top: 0; left: 15%; right: 15%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(129, 140, 248, 0.6), transparent);
+    }
+
+    .badge {
+      font-family: var(--font-m); font-size: 10px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--g); background: rgba(74, 222, 128, 0.1);
+      border: 1px solid rgba(74, 222, 128, 0.3); padding: 5px 14px; border-radius: 100px;
+      display: inline-block; margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: var(--font-d); font-size: clamp(26px, 4vw, 36px);
+      font-weight: 800; color: var(--ink-0); line-height: 1.2; margin-bottom: 10px;
+      letter-spacing: -0.5px;
+    }
+
+    p.subtitle { font-size: 15px; color: var(--ink-2); margin-bottom: 32px; line-height: 1.6; }
+
+    .drop-zone {
+      border: 2px dashed rgba(129, 140, 248, 0.35); border-radius: 20px;
+      padding: 44px 20px; text-align: center; background: rgba(2, 6, 24, 0.5);
+      cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .drop-zone:hover, .drop-zone.dragover {
+      border-color: var(--c); background: rgba(34, 211, 238, 0.06); transform: translateY(-2px);
+    }
+    .drop-icon { font-size: 42px; margin-bottom: 12px; display: block; }
+    .drop-title { font-family: var(--font-d); font-size: 18px; font-weight: 700; color: var(--ink-0); margin-bottom: 6px; }
+    .drop-desc { font-size: 13px; color: var(--ink-2); }
+
+    .config-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .config-group label {
+      font-family: var(--font-m); font-size: 11px; color: var(--ink-1); letter-spacing: 1px; text-transform: uppercase;
+    }
+    select {
+      background: #040816; color: var(--ink-0); border: 1px solid var(--border-lit);
+      padding: 12px 16px; border-radius: 12px; font-family: var(--font-b); font-size: 14px;
+      outline: none; cursor: pointer; width: 100%;
+    }
+
+    .app-workspace { display: none; flex-direction: column; gap: 24px; margin-top: 32px; }
+
+    .media-player-wrap {
+      width: 100%; background: #020617; border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden; display: flex; justify-content: center;
+      align-items: center; max-height: 380px; position: relative;
+    }
+    video, audio { width: 100%; max-height: 380px; outline: none; }
+
+    .progress-box {
+      display: none; flex-direction: column; gap: 10px;
+      background: rgba(129, 140, 248, 0.08); border: 1px solid rgba(129, 140, 248, 0.25);
+      border-radius: 14px; padding: 20px;
+    }
+    .progress-status {
+      font-family: var(--font-m); font-size: 12px; color: var(--v);
+      display: flex; justify-content: space-between;
+    }
+    .progress-bar-bg {
+      width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1);
+      border-radius: 100px; overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%; width: 0%; background: var(--grd-a); transition: width 0.3s ease;
+    }
+
+    .controls-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+
+    .btn {
+      font-family: var(--font-d); font-size: 14px; font-weight: 700;
+      padding: 13px 28px; border-radius: 100px; border: none; cursor: pointer;
+      transition: all 0.25s; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-primary {
+      background: var(--grd-a); color: #fff; box-shadow: 0 0 24px rgba(129, 140, 248, 0.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(129, 140, 248, 0.55); }
+    .btn-dub {
+      background: linear-gradient(135deg, #f472b6, #c084fc); color: #fff;
+      box-shadow: 0 0 24px rgba(244, 114, 182, 0.35);
+    }
+    .btn-dub:hover { transform: translateY(-2px); box-shadow: 0 0 36px rgba(244, 114, 182, 0.55); }
+    .btn-secondary { background: rgba(255, 255, 255, 0.05); color: var(--ink-1); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+
+    .editor-section {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+
+    .subtitle-editor-card {
+      background: rgba(2, 6, 23, 0.85); border: 1px solid var(--border-lit);
+      border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .editor-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    }
+    .editor-title { font-family: var(--font-d); font-size: 15px; font-weight: 700; color: var(--ink-0); }
+
+    textarea.srt-output {
+      width: 100%; height: 260px; background: #040816; border: 1px solid var(--border-lit);
+      border-radius: 12px; color: var(--g); font-family: var(--font-m);
+      font-size: 14px; line-height: 1.8; padding: 16px; resize: vertical; outline: none;
+    }
+
+    .dubbing-card {
+      background: rgba(8, 14, 40, 0.85); border: 1px solid rgba(244, 114, 182, 0.3);
+      border-radius: 18px; padding: 24px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .dubbing-title { font-family: var(--font-d); font-size: 15px; font-weight: 700; color: #f472b6; }
+
+    @media(max-width: 850px) {
+      .editor-section { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="nav-bar">
+      <a href="/" class="nav-logo">
+        <span class="highlight">ZipLoot</span>.app Studio
+      </a>
+      <a href="/posts/free-video-subtitle-audio-transcriber-whisper.html" class="back-link">← Technical Documentation</a>
+    </div>
+
+    <div class="studio-card">
+      <span class="badge">2-STEP INTERACTIVE SUBTITLE &amp; SYNCHRONIZED VOICE DUBBING STUDIO</span>
+      <h1>AI Video Subtitle &amp; Voice Dubbing Studio</h1>
+      <p class="subtitle">Extract original video subtitles in Step 1, then translate into native Unicode scripts and generate timestamp-synchronized AI voiceover dubbing in Step 2.</p>
+
+      <div class="drop-zone" id="dropZone">
+        <span class="drop-icon">🎬</span>
+        <div class="drop-title">Select Video or Audio File</div>
+        <div class="drop-desc">Click here or drag &amp; drop any media file (MP4, MKV, MOV, MP3, WAV, M4A, WEBM)</div>
+      </div>
+      <input type="file" id="fileInput" accept="video/*,audio/*" style="display: none;">
+
+      <div class="app-workspace" id="appWorkspace">
+        <div class="media-player-wrap" id="playerWrap"></div>
+
+        <div class="config-group">
+          <label>Source Video Audio Language:</label>
+          <select id="sourceLanguageSelect">
+            <option value="auto" selected>🌐 Auto-Detect Language</option>
+            <option value="en">🇺🇸 English</option>
+            <option value="bn">🇧🇩 Bengali (বাংলা)</option>
+            <option value="hi">🇮🇳 Hindi (हिंदी)</option>
+            <option value="es">🇪🇸 Spanish (Español)</option>
+          </select>
+        </div>
+
+        <div class="progress-box" id="progressBox">
+          <div class="progress-status">
+            <span id="statusText">Processing media file with AI Neural Engine...</span>
+            <span id="percentText">0%</span>
+          </div>
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+        </div>
+
+        <div class="controls-bar">
+          <button class="btn btn-primary" id="extractBtn">
+            ⚡ Step 1: Extract Original Subtitles
+          </button>
+          <button class="btn btn-secondary" id="resetBtn">
+            🔄 Select Another Media File
+          </button>
+        </div>
+
+        <!-- STEP 2 WORKSPACE -->
+        <div class="editor-section" id="step2Section" style="display: none;">
+          <div class="subtitle-editor-card">
+            <div class="editor-header">
+              <span class="editor-title">📝 Subtitle Editor (.SRT)</span>
+              <div style="display: flex; gap: 6px;">
+                <a class="btn btn-primary" style="padding: 7px 14px; font-size: 11px; text-decoration: none;" id="downloadBtn" download>
+                  ⬇️ Download .SRT
+                </a>
+                <button class="btn btn-secondary" style="padding: 7px 14px; font-size: 11px;" id="copyBtn">
+                  📋 Copy
+                </button>
+              </div>
+            </div>
+            <textarea class="srt-output" id="srtOutputText" placeholder="Extracted subtitles will appear here..."></textarea>
+          </div>
+
+          <div class="dubbing-card">
+            <span class="dubbing-title">🎙️ Step 2: Translate &amp; Synchronized AI Dubbing</span>
+            <p style="font-size: 12px; color: var(--ink-2);">Select your target language below to translate the subtitles into native script and generate synchronized AI voiceover dubbing:</p>
+
+            <div class="config-group" style="margin-top: 10px;">
+              <label>Target Translation &amp; Dubbing Language:</label>
+              <select id="targetLanguageSelect">
+                <option value="bn" selected>🇧🇩 Bengali Native Script (বাংলা ডাবিং)</option>
+                <option value="en">🇺🇸 English Voiceover Dubbing</option>
+                <option value="hi">🇮🇳 Hindi Native Voice (हिंदी डबिंग)</option>
+                <option value="es">🇪🇸 Spanish Voiceover (Español)</option>
+                <option value="fr">🇫🇷 French Voiceover (Français)</option>
+              </select>
+            </div>
+
+            <button class="btn btn-dub" id="translateDubBtn" style="width: 100%; justify-content: center; margin-top: 6px;">
+              🎙️ Translate &amp; Generate Synchronized AI Voice Dubbing
+            </button>
+
+            <div style="margin-top: 16px;" id="audioPlayerWrap">
+              <audio id="dubbedAudioPlayer" controls style="width: 100%; border-radius: 12px; outline: none; display: none;"></audio>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentFile = null;
+    let activeSessionId = null;
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const appWorkspace = document.getElementById('appWorkspace');
+    const playerWrap = document.getElementById('playerWrap');
+    const progressBox = document.getElementById('progressBox');
+    const statusText = document.getElementById('statusText');
+    const percentText = document.getElementById('percentText');
+    const progressFill = document.getElementById('progressFill');
+    const step2Section = document.getElementById('step2Section');
+    const srtOutputText = document.getElementById('srtOutputText');
+    const extractBtn = document.getElementById('extractBtn');
+    const translateDubBtn = document.getElementById('translateDubBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const sourceLanguageSelect = document.getElementById('sourceLanguageSelect');
+    const targetLanguageSelect = document.getElementById('targetLanguageSelect');
+    const dubbedAudioPlayer = document.getElementById('dubbedAudioPlayer');
+
+    dropZone.addEventListener('click', () => { fileInput.click(); });
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) processMediaFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) processMediaFile(e.target.files[0]);
+    });
+
+    function processMediaFile(file) {
+      currentFile = file;
+      dropZone.style.display = 'none';
+      appWorkspace.style.display = 'flex';
+      playerWrap.innerHTML = '';
+      step2Section.style.display = 'none';
+
+      const objectUrl = URL.createObjectURL(file);
+      if (file.type.startsWith('video/')) {
+        const video = document.createElement('video');
+        video.src = objectUrl;
+        video.controls = true;
+        video.id = 'activeMediaElement';
+        playerWrap.appendChild(video);
+      } else {
+        const audio = document.createElement('audio');
+        audio.src = objectUrl;
+        audio.controls = true;
+        audio.id = 'activeMediaElement';
+        playerWrap.appendChild(audio);
+      }
+    }
+
+    // STEP 1: Extract Original Subtitles
+    extractBtn.addEventListener('click', async () => {
+      if (!currentFile) return;
+
+      extractBtn.disabled = true;
+      progressBox.style.display = 'flex';
+      progressFill.style.width = '30%';
+      percentText.innerText = '30%';
+      statusText.innerText = 'Extracting original video speech in Python...';
+
+      const formData = new FormData();
+      formData.append('file', currentFile);
+      formData.append('source_language', sourceLanguageSelect.value);
+
+      try {
+        progressFill.style.width = '70%';
+        percentText.innerText = '70%';
+        statusText.innerText = 'Processing speech recognition & normalizing native script...';
+
+        const response = await fetch('/api/extract_subtitles', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+
+        activeSessionId = data.session_id;
+        progressFill.style.width = '100%';
+        percentText.innerText = '100%';
+        statusText.innerText = 'Step 1 Complete! Original Subtitles Extracted.';
+
+        srtOutputText.value = data.srt || 'No speech recognized.';
+        step2Section.style.display = 'grid';
+
+      } catch (err) {
+        console.error(err);
+        statusText.innerText = `Error: ${err.message}`;
+        alert("Extraction Error: " + err.message);
+      } finally {
+        extractBtn.disabled = false;
+      }
+    });
+
+    // STEP 2: Translate Subtitles & Generate Synchronized AI Voice Dubbing
+    translateDubBtn.addEventListener('click', async () => {
+      if (!activeSessionId) {
+        alert("Please run Step 1 to extract subtitles first.");
+        return;
+      }
+
+      translateDubBtn.disabled = true;
+      progressBox.style.display = 'flex';
+      progressFill.style.width = '40%';
+      percentText.innerText = '40%';
+      statusText.innerText = `Translating subtitles into '${targetLanguageSelect.value.toUpperCase()}' Native Script...`;
+
+      try {
+        progressFill.style.width = '80%';
+        percentText.innerText = '80%';
+        statusText.innerText = 'Assembling timestamp-synchronized AI voiceover dubbing...';
+
+        const response = await fetch('/api/translate_and_dub', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            session_id: activeSessionId,
+            target_language: targetLanguageSelect.value,
+            srt_content: srtOutputText.value
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.error) throw new Error(data.error);
+
+        progressFill.style.width = '100%';
+        percentText.innerText = '100%';
+        statusText.innerText = 'Step 2 Complete! Translated Subtitles & Synchronized AI Dubbing Ready.';
+
+        srtOutputText.value = data.translated_srt || srtOutputText.value;
+        downloadBtn.href = data.srt_download;
+
+        if (data.dubbed_audio) {
+          dubbedAudioPlayer.src = data.dubbed_audio;
+          dubbedAudioPlayer.style.display = 'block';
+          dubbedAudioPlayer.play();
+        }
+
+      } catch (err) {
+        console.error(err);
+        statusText.innerText = `Error: ${err.message}`;
+        alert("Translation / Dubbing Error: " + err.message);
+      } finally {
+        translateDubBtn.disabled = false;
+      }
+    });
+
+    copyBtn.addEventListener('click', () => {
+      srtOutputText.select();
+      navigator.clipboard.writeText(srtOutputText.value);
+      alert('Subtitles copied to clipboard!');
+    });
+
+    resetBtn.addEventListener('click', () => {
+      currentFile = null;
+      activeSessionId = null;
+      dropZone.style.display = 'block';
+      appWorkspace.style.display = 'none';
+      step2Section.style.display = 'none';
+      progressBox.style.display = 'none';
+      fileInput.value = '';
+    });
+  </script>
+</body>
+</html>
