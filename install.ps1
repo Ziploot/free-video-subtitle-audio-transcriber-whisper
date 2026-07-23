@@ -1,4 +1,6 @@
 # ZipLoot AI Subtitle & Voice Dubbing Studio 1-Click Windows PowerShell Installer
+Set-Location -Path $PSScriptRoot
+
 Write-Host "=====================================================================" -ForegroundColor Cyan
 Write-Host "   ZipLoot AI Subtitle Transcriber & Voice Dubbing Studio Installer" -ForegroundColor Cyan
 Write-Host "=====================================================================" -ForegroundColor Cyan
