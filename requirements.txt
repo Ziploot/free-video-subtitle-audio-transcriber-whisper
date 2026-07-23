@@ -1,0 +1,9 @@
+flask>=3.0.0
+SpeechRecognition>=3.10.0
+openai-whisper
+torch
+torchaudio
+gTTS>=2.5.0
+deep-translator>=1.11.0
+imageio-ffmpeg>=0.4.9
+requests
